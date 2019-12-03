@@ -16,7 +16,7 @@ more than 1, drops off faster
   numRows<- 10
   numCols<- 10
 
-makeLightGrid<- function(){
+makeLightGrid<- function(numRows, numCols){
 
   
   lightGrid<- matrix(NA, numRows, numCols)
@@ -29,7 +29,7 @@ makeLightGrid<- function(){
   return (lightGrid)
 }
 
-makeObsGrid<- function(){
+makeObsGrid<- function(numRows, numCols){
   obsGrid<- matrix(NA, numRows, numCols)
   obsGrid[1,]<- 1
   obsGrid[,1]<- 1
@@ -46,8 +46,8 @@ makeObsGrid<- function(){
     return(obsGrid)
     }
 
-obsGrid<- makeObsGrid()
-lightGrid<- makeLightGrid()
+obsGrid<- makeObsGrid(numRows, numCols)
+lightGrid<- makeLightGrid(numRows, numCols)
 ```
 
 
@@ -142,8 +142,8 @@ turnCounter <- function(cardinal){
 
 Test
 ```{r}
-obsGridTest<- makeObsGrid()
-lightGridTest<- makeLightGrid()
+obsGridTest<- makeObsGrid(numRows, numCols)
+lightGridTest<- makeLightGrid(numRows, numCols)
 #begin facing up
 cardinal <- c(-1,0)
 acc<- 0
@@ -153,6 +153,7 @@ obsGridTest <- moveForward(obsGridTest)
 obsGridTest <- moveForward(obsGridTest)
 cardinal<- turnClock(cardinal)
 obsGridTest <- moveForward(obsGridTest)
+
 ```
 
 overall: "take turn"
@@ -176,54 +177,54 @@ left<- c(0, -1)
 rightLight<- 0
 leftLight<- 0
 
-getlight<- function(obsGrid){
+getlight<- function(obsGrid, lightGrid){
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   #up
-  if(cardinal== up){
+  if(all(cardinal)== up){
     rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+right], lightGrid[aCur+up+right])
       leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+left], lightGrid[aCur+up+left])
   }
   
   #right
-  else if(cardinal== right){
+  else if(all(cardinal)== right){
     rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+up], lightGrid[aCur+up+right])
       leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down], lightGrid[aCur+down+right])
   }
   #left
-    else if(cardinal== left){
+    else if(all(cardinal)== left){
     rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+up], lightGrid[aCur+up+left])
       leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down], lightGrid[aCur+down+left])
     }
   #down
-    else if(cardinal== down){
+    else if(all(cardinal)== down){
     rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+right], lightGrid[aCur+down+right])
       leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+left], lightGrid[aCur+down+left])
   }
   
   acc<- acc + leftLight+rightLight
   
-  return(obsGrid)
+  return(acc)
 }
 
 
 ```
 Test for light
 ```{r}
-obsGridTest<- makeObsGrid()
-lightGridTest<- makeLightGrid()
+obsGridTest<- makeObsGrid(numRows, numCols)
+lightGridTest<- makeLightGrid(numRows, numCols)
 #begin facing up
 cardinal <- c(-1,0)
 acc<- 0
 age<- 0
 
 obsGridTest <- moveForward(obsGridTest)
-light<- getlight(obsGridTest)
+light<- getlight(obsGridTest, lightGridTest)
 obsGridTest <- moveForward(obsGridTest)
-light<- getlight(obsGridTest)
+light<- getlight(obsGridTest, lightGridTest)
 cardinal<- turnClock(cardinal)
-light<- getlight(obsGridTest)
+light<- getlight(obsGridTest, lightGridTest)
 obsGridTest <- moveForward(obsGridTest)
-light<- getlight(obsGridTest)
+light<- getlight(obsGridTest, lightGridTest)
 accTest<- acc
 
 ```
@@ -251,8 +252,10 @@ getRightIR<- function(obsGrid){
   #checks for both Right  IR, they include the two spaces in front, sets to distance between,
   # first checks before, then to right, then up up, then up up right
   #else if because we check in order
+  
+  
   #up direction
-  if(cardinal== up){ 
+  if(all(cardinal)== up){ 
     #if item in spot 1 (up), IR = distance
     if(obsGrid[aCur+up]==1){
       rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
@@ -267,7 +270,7 @@ getRightIR<- function(obsGrid){
       rightIR <- aCur[1]-aCur+up+up+right[1]/aCur[2]-aCur+up+up+right[2]
     }}
   #down direction
-  if (cardinal == down){
+  if (all(cardinal) == down){
     #spot 1
     if(obsGrid[aCur+down]==1){
          rightIR <- aCur[1]-aCur+down[1]/aCur[2]-aCur+down[2]
@@ -281,16 +284,48 @@ getRightIR<- function(obsGrid){
     } else if (obsGrid[aCur+down+down+right]){
       rightIR <- aCur[1]-aCur+down+down+right[1]/aCur[2]-aCur+down+down+right[2]
     }
-    
-    
   }
+  
+  #right direction
+  if (all(cardinal) == right){
+    #spot 1
+    if(obsGrid[aCur+right]==1){
+         rightIR <- aCur[1]-aCur+right[1]/aCur[2]-aCur+right[2]
+         #spot 2
+    } else if (obsGrid[aCur+down+right]==1){
+       rightIR <- aCur[1]-aCur+down+right[1]/aCur[2]-aCur+down+right[2]
+       #spot 3
+    } else if (obsGrid[aCur+right+right]==1){
+    rightIR <- aCur[1]-aCur+right+right[1]/aCur[2]-aCur+right+right[2]
+    #spot 4
+    } else if (obsGrid[aCur+down+right+right]){
+      rightIR <- aCur[1]-aCur+down+right+right[1]/aCur[2]-aCur+down+right+right[2]
+    }
+  }
+  
+  if (all(cardinal) == left){
+    #spot 1
+    if(obsGrid[aCur+left]==1){
+         rightIR <- aCur[1]-aCur+left[1]/aCur[2]-aCur+left[2]
+         #spot 2
+    } else if (obsGrid[aCur+up+left]==1){
+       rightIR <- aCur[1]-aCur+up+left[1]/aCur[2]-aCur+up+left[2]
+       #spot 3
+    } else if (obsGrid[aCur+left+left]==1){
+    rightIR <- aCur[1]-aCur+left+left[1]/aCur[2]-aCur+left+left[2]
+    #spot 4
+    } else if (obsGrid[aCur+up+left+left]){
+      rightIR <- aCur[1]-aCur+up+left+left[1]/aCur[2]-aCur+up+left+left[2]
+    }
+  }
+  
   return (rightIR)
 }
     
     
 getLeftIR<- function(obsGrid){
   aCur<- which(obsGrid==0, arr.ind=TRUE)
-  if(cardinal== up){ 
+  if(all(cardinal)== up){ 
     #if item in spot 1 (up), IR = distance
     if(obsGrid[aCur+up]==1){
       rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
@@ -304,7 +339,7 @@ getLeftIR<- function(obsGrid){
     } else if (obsGrid[aCur+up+up+left]==1){
       rightIR <- aCur[1]-aCur+up+up+left[1]/aCur[2]-aCur+up+up+leftIR[2]
     }}
-   if (cardinal == down){
+   if (all(cardinal) == down){
     #spot 1
     if(obsGrid[aCur+down]==1){
          rightIR <- aCur[1]-aCur+down[1]/aCur[2]-aCur+down[2]
@@ -318,12 +353,40 @@ getLeftIR<- function(obsGrid){
     } else if (obsGrid[aCur+down+down+left]){
       rightIR <- aCur[1]-aCur+down+down+left[1]/aCur[2]-aCur+down+down+left[2]
     }
+   }
+  #right
+  if (all(cardinal) == right){
+    #spot 1
+    if(obsGrid[aCur+right]==1){
+         rightIR <- aCur[1]-aCur+right[1]/aCur[2]-aCur+right[2]
+         #spot 2
+    } else if (obsGrid[aCur+up+right]==1){
+       rightIR <- aCur[1]-aCur+up+right[1]/aCur[2]-aCur+up+right[2]
+       #spot 3
+    } else if (obsGrid[aCur+right+right]==1){
+    rightIR <- aCur[1]-aCur+right+right[1]/aCur[2]-aCur+right+right[2]
+    #spot 4
+    } else if (obsGrid[aCur+up+right+right]){
+      rightIR <- aCur[1]-aCur+up+right+right[1]/aCur[2]-aCur+up+right+right[2]
+    }
+  }
 
-      
-      
-
-   
-  
+     if (all(cardinal) == left){
+    #spot 1
+    if(obsGrid[aCur+left]==1){
+         rightIR <- aCur[1]-aCur+left[1]/aCur[2]-aCur+left[2]
+         #spot 2
+    } else if (obsGrid[aCur+down+left]==1){
+       rightIR <- aCur[1]-aCur+down+left[1]/aCur[2]-aCur+down+left[2]
+       #spot 3
+    } else if (obsGrid[aCur+left+left]==1){
+    rightIR <- aCur[1]-aCur+left+left[1]/aCur[2]-aCur+left+left[2]
+    #spot 4
+    } else if (obsGrid[aCur+down+left+left]){
+      rightIR <- aCur[1]-aCur+down+left+left[1]/aCur[2]-aCur+down+left+left[2]
+    }
+  }   
+ 
   return(leftIR)
   }
   
@@ -342,7 +405,7 @@ getBump<- function(obsGrid){
   }
   
 
-  return(obsGrid)
+  return(bump)
 }
 ```
 
