@@ -429,10 +429,10 @@ weights<- matrix(NA,length(input), length(output))
 Trial
 ```{r}
 makeMove<- function(obsGrid){
-options<- c(moveForward(obsGrid), moveBackward(obsGrid), turnClock(obsGrid), turnCounter(obsGrid))
-sample(options, 1, replace = TRUE)
-  
-  
+options<- list(moveForward(obsGrid), moveBackward(obsGrid), turnClock(obsGrid), turnCounter(obsGrid))
+rand<-sample(1:4, 1, replace = TRUE)
+  move<- options[rand]
+  obsGrid<- move
   
   return(obsGrid)
 }
