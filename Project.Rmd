@@ -1,0 +1,346 @@
+---
+title: "COGS 319 Project"
+output: html_notebook
+---
+
+Grid world:
+A matrix of rows and colums, each square has a light value, can be occupied by an agent, and can have an obstacle
+2 layers of matrix: light and obstacle + agent
+light: 0 = dark, 255= max light (or 0-1)
+
+light scaline function: 255*exp(-distance)
+falls off, if we multiply d by a number less than one, drops off slower
+more than 1, drops off faster
+
+```{r}
+  numRows<- 10
+  numCols<- 10
+
+makeLightGrid<- function(){
+
+  
+  lightGrid<- matrix(NA, numRows, numCols)
+  for(x in 1:numCols){
+    for(y in 1:numRows){
+      distance <- sqrt((0-y)^2+((numCols+1)/2-x)^2)
+      lightGrid[y,x] <- round(255*exp(-distance*.5))
+    }
+  }
+  return (lightGrid)
+}
+
+makeObsGrid<- function(){
+  obsGrid<- matrix(NA, numRows, numCols)
+  obsGrid[1,]<- 1
+  obsGrid[,1]<- 1
+  obsGrid[numRows,]<- 1
+  obsGrid[,numCols] <-1
+  
+    obsGrid[round(numRows/2), round(numCols/2)]<- 1
+    obsGrid[round(numRows/2)+1, round(numCols/2)]<- 1
+    obsGrid[round(numRows/2), round(numCols/2)+1]<- 1
+    obsGrid[round(numRows/2)-1, round(numCols/2)]<- 1
+    obsGrid[round(numRows/2), round(numCols/2)-1]<- 1
+
+    obsGrid[numRows-1, round(numCols/2)]<- 0
+    return(obsGrid)
+    }
+
+obsGrid<- makeObsGrid()
+lightGrid<- makeLightGrid()
+```
+
+
+Agent traverses block matrix
+blank indicates no block
+1 indicates block
+0 = agent is in this spot
+agent cannot be on a block
+
+Agent's variables:
+cardinal: up, left, down or right pointing
+light accumulator
+NN
+Age
+
+
+functions:
+(determined by NN)
+turn in place to left, turn to right, step forward, step backward
+
+move:
+takes grid as argument
+changes grid so agent is in new spot
+return new grid
+
+moveForward: moves in the direction bot is facing one space forward
+
+cardinal: an ordered pair that designates next move
+(rows, col)
+(1,0) -> down
+(0, 1) -> right
+(-1,0) -> up
+(0, -1) -> left
+```{r}
+moveForward <-function(obsGrid){
+  aCur<- which(obsGrid==0, arr.ind=TRUE)
+  if(is.na(obsGrid[aCur+cardinal])){
+    obsGrid[aCur]<- NA
+    obsGrid[aCur+cardinal]<- 0
+  }
+  return(obsGrid)
+}
+moveBackward <-function(obsGrid){
+  aCur<- which(obsGrid==0, arr.ind=TRUE)
+  if(is.na(obsGrid[aCur-cardinal])){
+    obsGrid[aCur]<- NA
+    obsGrid[aCur-cardinal]<- 0
+  }
+   return(obsGrid)
+}
+
+turnClock <- function(cardinal){
+  #if down, turn left
+  if(all(cardinal == c(1,0))){
+    cardinal <- c(0,-1)
+  }
+  #if left, turn up
+  else if(all(cardinal == c(0,-1))){
+    cardinal <- c(-1,0)
+  }
+  #if up, turn right
+  else if(all(cardinal == c(-1,0))){
+    cardinal <- c(0,1)
+  }
+   #if right, turn down
+  else if(all(cardinal == c(0,1))){
+    cardinal <- c(1,0)
+  }
+  return(cardinal)
+}
+turnCounter <- function(cardinal){
+  #if left, turn down
+  if(all(cardinal == c(0,-1))){
+    cardinal <- c(1,0)
+  }
+  #if up turn left
+  else if(all(cardinal == c(-1,0))){
+    cardinal <- c(0,-1)
+  }
+  #if right, turn up
+  else if(all(cardinal == c(0,1))){
+    cardinal <- c(-1,0)
+  }
+   #if down, turn right
+  else if(all(cardinal == c(1,0))){
+    cardinal <- c(0,1)
+  }
+  return(cardinal)
+}
+
+```
+
+Test
+```{r}
+obsGridTest<- makeObsGrid()
+lightGridTest<- makeLightGrid()
+#begin facing up
+cardinal <- c(-1,0)
+acc<- 0
+age<- 0
+
+obsGridTest <- moveForward(obsGridTest)
+obsGridTest <- moveForward(obsGridTest)
+cardinal<- turnClock(cardinal)
+obsGridTest <- moveForward(obsGridTest)
+```
+
+overall: "take turn"
+loop gets current status, runs NN to see action, takes action, gets new state
+
+(rows, col)
+(1,0) -> down
+(0, 1) -> right
+(-1,0) -> up
+(0, -1) -> left
+
+#light function
+get light takes in obsGrid, finds the position of the bot (aCur)
+based on the cardinal, it takes the average of the space its in, the space in front, and the two to the right and left for the right and left sensors respectively. The sum of r and l is the number added to the accumulator
+```{r}
+down <- c(1,0)
+right<- c(0, 1)
+up<- c(-1,0)
+left<- c(0, -1)
+
+rightLight<- 0
+leftLight<- 0
+
+getlight<- function(obsGrid){
+  aCur<- which(obsGrid==0, arr.ind=TRUE)
+  #up
+  if(cardinal== up){
+    rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+right], lightGrid[aCur+up+right])
+      leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+left], lightGrid[aCur+up+left])
+  }
+  
+  #right
+  else if(cardinal== right){
+    rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+up], lightGrid[aCur+up+right])
+      leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down], lightGrid[aCur+down+right])
+  }
+  #left
+    else if(cardinal== left){
+    rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+up], lightGrid[aCur+up+left])
+      leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down], lightGrid[aCur+down+left])
+    }
+  #down
+    else if(cardinal== down){
+    rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+right], lightGrid[aCur+down+right])
+      leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+left], lightGrid[aCur+down+left])
+  }
+  
+  acc<- acc + leftLight+rightLight
+  
+  return(obsGrid)
+}
+
+
+```
+Test for light
+```{r}
+obsGridTest<- makeObsGrid()
+lightGridTest<- makeLightGrid()
+#begin facing up
+cardinal <- c(-1,0)
+acc<- 0
+age<- 0
+
+obsGridTest <- moveForward(obsGridTest)
+light<- getlight(obsGridTest)
+obsGridTest <- moveForward(obsGridTest)
+light<- getlight(obsGridTest)
+cardinal<- turnClock(cardinal)
+light<- getlight(obsGridTest)
+obsGridTest <- moveForward(obsGridTest)
+light<- getlight(obsGridTest)
+accTest<- acc
+
+```
+
+
+Get ir
+returns the distance of the closest block
+
+```{r}
+
+leftIR<- 0
+rightIR<-0
+
+getRightIR<- function(obsGrid){
+  aCur<- which(obsGrid==0, arr.ind=TRUE)
+  #up
+  #checks for both Right  IR, they include the two spaces in front, sets to distance between,
+  # first checks before, then to right, then up up, then up up right
+  if(cardinal== up){ 
+    if(obsGrid[aCur+up]==1){
+      rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
+    } else if (obsGrid[aCur+up+right]){
+      rightIR <- aCur[1]-aCur+up+right[1]/aCur[2]-aCur+up+right[2]
+    } else if (obsGrid[aCur+up+up]==1){
+      rightIR <- aCur[1]-aCur+up+up[1]/aCur[2]-aCur+up+up[2]
+    } else if (obsGrid[aCur+up+up+right]==1){
+      rightIR <- aCur[1]-aCur+up+up+right[1]/aCur[2]-aCur+up+up+right[2]
+    }
+    
+      
+      
+      
+      
+      rightIR<- (mean(obsGrid[aCur], obsGrid[aCur+cardinal], obsGrid[aCur+right], obsGrid[aCur+up+right]))
+    if(obsGrid[aCur]||
+       obsGrid[aCur+cardinal]|| 
+       obsGrid[aCur+left]|| 
+       obsGrid[aCur+up+left] == 1){
+      leftIR<- (mean(obsGrid[aCur], obsGrid[aCur+cardinal], obsGrid[aCur+left], obsGrid[aCur+up+left]))
+    
+    #need to do the rest if this is correct
+ 
+    }
+  
+  return(obsGrid)
+  }
+  
+  
+```
+getBump
+```{r}
+bump <- 0
+getBump<- function(obsGrid){
+  aCur<- which(obsGrid==0, arr.ind=TRUE)
+  if(is.na(obsGrid[aCur+cardinal])){
+    bump<-0
+  }
+  else if(!is.na(obsGrid[aCur+cardinal])){
+    bump<-1
+  }
+  
+
+  return(obsGrid)
+}
+```
+
+
+NN
+```{r}
+clock <- 0
+counter <- 0
+fwd <- 0
+back <- 0
+
+input<- c(leftLight,leftIR, bump, rightIR, rightLight) 
+output <- c(clock, counter, fwd, back)
+weights<- matrix(NA,length(input), length(output))
+
+
+
+```
+
+Trial
+```{r}
+makeMove<- function(obsGrid){
+  
+  
+  
+  
+  return(obsGrid)
+}
+
+
+
+```
+
+Next steps:
+  run agent through grid world
+  agent that makes random decisions
+  assign score to them about how well they do
+  fitness component
+  genetic alogrythm to evolve control structures
+  
+  
+  Four actions: turn turn up back
+  make next decision: randomly chooses one of the 4
+  sample with replacement
+  call function for action picked using if statement
+  put in a loop, do x amount of times
+  all bots in dataframe
+  
+  fitness score for each in dataframe
+  
+  
+  
+  
+  proof of concept of evolution working: demo of modeling approach
+  paper can imagine what you can learn from model hypothetically 
+  
+  

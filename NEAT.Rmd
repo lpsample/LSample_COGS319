@@ -1,0 +1,11 @@
+---
+title: "NEAT"
+output: html_document
+---
+
+```{r}
+install.packages("remotes")
+remotes::install_github("ahunteruk/RNeat")
+
+```
+
