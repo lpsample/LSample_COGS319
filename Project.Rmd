@@ -76,6 +76,7 @@ return new grid
 moveForward: moves in the direction bot is facing one space forward
 
 cardinal: an ordered pair that designates next move
+y, x
 (rows, col)
 (1,0) -> down
 (0, 1) -> right
@@ -99,7 +100,7 @@ moveBackward <-function(obsGrid){
    return(obsGrid)
 }
 
-turnClock <- function(cardinal){
+turnClock <- function(obsGrid){
   #if down, turn left
   if(all(cardinal == c(1,0))){
     cardinal <- c(0,-1)
@@ -116,9 +117,9 @@ turnClock <- function(cardinal){
   else if(all(cardinal == c(0,1))){
     cardinal <- c(1,0)
   }
-  return(cardinal)
+  return(obsGrid)
 }
-turnCounter <- function(cardinal){
+turnCounter <- function(obsGrid){
   #if left, turn down
   if(all(cardinal == c(0,-1))){
     cardinal <- c(1,0)
@@ -135,7 +136,7 @@ turnCounter <- function(cardinal){
   else if(all(cardinal == c(1,0))){
     cardinal <- c(0,1)
   }
-  return(cardinal)
+  return(obsGrid)
 }
 
 ```
@@ -225,7 +226,7 @@ cardinal<- turnClock(cardinal)
 light<- getlight(obsGridTest, lightGridTest)
 obsGridTest <- moveForward(obsGridTest)
 light<- getlight(obsGridTest, lightGridTest)
-accTest<- acc
+accTest<- light
 
 ```
 
@@ -319,7 +320,7 @@ getRightIR<- function(obsGrid){
     }
   }
   
-  return (rightIR)
+  return (abs(rightIR))
 }
     
     
@@ -387,7 +388,7 @@ getLeftIR<- function(obsGrid){
     }
   }   
  
-  return(leftIR)
+  return(abs(leftIR))
   }
   
   
@@ -428,7 +429,8 @@ weights<- matrix(NA,length(input), length(output))
 Trial
 ```{r}
 makeMove<- function(obsGrid){
-  
+options<- c(moveForward(obsGrid), moveBackward(obsGrid), turnClock(obsGrid), turnCounter(obsGrid))
+sample(options, 1, replace = TRUE)
   
   
   
