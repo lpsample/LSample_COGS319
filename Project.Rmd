@@ -232,6 +232,14 @@ accTest<- acc
 Get ir
 returns the distance of the closest block
 
+
+down <- c(1,0)
+right<- c(0, 1)
+up<- c(-1,0)
+left<- c(0, -1)
+
+
+
 ```{r}
 
 leftIR<- 0
@@ -242,33 +250,81 @@ getRightIR<- function(obsGrid){
   #up
   #checks for both Right  IR, they include the two spaces in front, sets to distance between,
   # first checks before, then to right, then up up, then up up right
+  #else if because we check in order
+  #up direction
   if(cardinal== up){ 
+    #if item in spot 1 (up), IR = distance
     if(obsGrid[aCur+up]==1){
       rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
+      #if item in spot 2 (right), IR = distance
     } else if (obsGrid[aCur+up+right]){
       rightIR <- aCur[1]-aCur+up+right[1]/aCur[2]-aCur+up+right[2]
+      #if item in spot 3, IR= distance
     } else if (obsGrid[aCur+up+up]==1){
       rightIR <- aCur[1]-aCur+up+up[1]/aCur[2]-aCur+up+up[2]
+      #if item in spot 4, IR = distance
     } else if (obsGrid[aCur+up+up+right]==1){
       rightIR <- aCur[1]-aCur+up+up+right[1]/aCur[2]-aCur+up+up+right[2]
+    }}
+  #down direction
+  if (cardinal == down){
+    #spot 1
+    if(obsGrid[aCur+down]==1){
+         rightIR <- aCur[1]-aCur+down[1]/aCur[2]-aCur+down[2]
+         #spot 2
+    } else if (obsGrid[aCur+down+right]==1){
+       rightIR <- aCur[1]-aCur+down+right[1]/aCur[2]-aCur+down+right[2]
+       #spot 3
+    } else if (obsGrid[aCur+down+down]==1){
+    rightIR <- aCur[1]-aCur+down+down[1]/aCur[2]-aCur+down+down[2]
+    #spot 4
+    } else if (obsGrid[aCur+down+down+right]){
+      rightIR <- aCur[1]-aCur+down+down+right[1]/aCur[2]-aCur+down+down+right[2]
     }
     
-      
-      
-      
-      
-      rightIR<- (mean(obsGrid[aCur], obsGrid[aCur+cardinal], obsGrid[aCur+right], obsGrid[aCur+up+right]))
-    if(obsGrid[aCur]||
-       obsGrid[aCur+cardinal]|| 
-       obsGrid[aCur+left]|| 
-       obsGrid[aCur+up+left] == 1){
-      leftIR<- (mean(obsGrid[aCur], obsGrid[aCur+cardinal], obsGrid[aCur+left], obsGrid[aCur+up+left]))
     
-    #need to do the rest if this is correct
- 
+  }
+  return (rightIR)
+}
+    
+    
+getLeftIR<- function(obsGrid){
+  aCur<- which(obsGrid==0, arr.ind=TRUE)
+  if(cardinal== up){ 
+    #if item in spot 1 (up), IR = distance
+    if(obsGrid[aCur+up]==1){
+      rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
+      #if item in spot 2 (left), IR = distance
+    } else if (obsGrid[aCur+up+leftIR]){
+      rightIR <- aCur[1]-aCur+up+left[1]/aCur[2]-aCur+up+left[2]
+      #if item in spot 3, IR= distance
+    } else if (obsGrid[aCur+up+up]==1){
+      rightIR <- aCur[1]-aCur+up+up[1]/aCur[2]-aCur+up+up[2]
+      #if item in spot 4, IR = distance
+    } else if (obsGrid[aCur+up+up+left]==1){
+      rightIR <- aCur[1]-aCur+up+up+left[1]/aCur[2]-aCur+up+up+leftIR[2]
+    }}
+   if (cardinal == down){
+    #spot 1
+    if(obsGrid[aCur+down]==1){
+         rightIR <- aCur[1]-aCur+down[1]/aCur[2]-aCur+down[2]
+         #spot 2
+    } else if (obsGrid[aCur+down+left]==1){
+       rightIR <- aCur[1]-aCur+down+left[1]/aCur[2]-aCur+down+left[2]
+       #spot 3
+    } else if (obsGrid[aCur+down+down]==1){
+    rightIR <- aCur[1]-aCur+down+down[1]/aCur[2]-aCur+down+down[2]
+    #spot 4
+    } else if (obsGrid[aCur+down+down+left]){
+      rightIR <- aCur[1]-aCur+down+down+left[1]/aCur[2]-aCur+down+down+left[2]
     }
+
+      
+      
+
+   
   
-  return(obsGrid)
+  return(leftIR)
   }
   
   
