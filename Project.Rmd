@@ -150,6 +150,11 @@ cardinal <- c(-1,0)
 acc<- 0
 age<- 0
 
+state <- list(
+  cardinal = c(-1,0),
+  obsGrid = makeObsGrid(numRows, numCols)
+)
+
 obsGridTest <- moveForward(obsGridTest)
 obsGridTest <- moveForward(obsGridTest)
 cardinal<- turnClock(cardinal)
@@ -178,26 +183,26 @@ left<- c(0, -1)
 rightLight<- 0
 leftLight<- 0
 
-getlight<- function(obsGrid, lightGrid){
+getlight<- function(cardinal, obsGrid, lightGrid){
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   #up
-  if(all(cardinal)== up){
+  if(all(cardinal== up)){
     rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+right], lightGrid[aCur+up+right])
       leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+left], lightGrid[aCur+up+left])
   }
   
   #right
-  else if(all(cardinal)== right){
+  else if(all(cardinal== right)){
     rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+up], lightGrid[aCur+up+right])
       leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down], lightGrid[aCur+down+right])
   }
   #left
-    else if(all(cardinal)== left){
+    else if(all(cardinal== left)){
     rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+up], lightGrid[aCur+up+left])
       leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down], lightGrid[aCur+down+left])
     }
   #down
-    else if(all(cardinal)== down){
+    else if(all(cardinal== down)){
     rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+right], lightGrid[aCur+down+right])
       leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+left], lightGrid[aCur+down+left])
   }
@@ -256,7 +261,7 @@ getRightIR<- function(obsGrid){
   
   
   #up direction
-  if(all(cardinal)== up){ 
+  if(all(cardinal== up)){ 
     #if item in spot 1 (up), IR = distance
     if(obsGrid[aCur+up]==1){
       rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
@@ -271,7 +276,7 @@ getRightIR<- function(obsGrid){
       rightIR <- aCur[1]-aCur+up+up+right[1]/aCur[2]-aCur+up+up+right[2]
     }}
   #down direction
-  if (all(cardinal) == down){
+  if (all(cardinal == down)){
     #spot 1
     if(obsGrid[aCur+down]==1){
          rightIR <- aCur[1]-aCur+down[1]/aCur[2]-aCur+down[2]
@@ -288,7 +293,7 @@ getRightIR<- function(obsGrid){
   }
   
   #right direction
-  if (all(cardinal) == right){
+  if (all(cardinal == right)){
     #spot 1
     if(obsGrid[aCur+right]==1){
          rightIR <- aCur[1]-aCur+right[1]/aCur[2]-aCur+right[2]
@@ -304,7 +309,7 @@ getRightIR<- function(obsGrid){
     }
   }
   
-  if (all(cardinal) == left){
+  if (all(cardinal == left)){
     #spot 1
     if(obsGrid[aCur+left]==1){
          rightIR <- aCur[1]-aCur+left[1]/aCur[2]-aCur+left[2]
@@ -326,7 +331,7 @@ getRightIR<- function(obsGrid){
     
 getLeftIR<- function(obsGrid){
   aCur<- which(obsGrid==0, arr.ind=TRUE)
-  if(all(cardinal)== up){ 
+  if(all(cardinal== up)){ 
     #if item in spot 1 (up), IR = distance
     if(obsGrid[aCur+up]==1){
       rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
@@ -340,7 +345,7 @@ getLeftIR<- function(obsGrid){
     } else if (obsGrid[aCur+up+up+left]==1){
       rightIR <- aCur[1]-aCur+up+up+left[1]/aCur[2]-aCur+up+up+leftIR[2]
     }}
-   if (all(cardinal) == down){
+   if (all(cardinal == down)){
     #spot 1
     if(obsGrid[aCur+down]==1){
          rightIR <- aCur[1]-aCur+down[1]/aCur[2]-aCur+down[2]
@@ -356,7 +361,7 @@ getLeftIR<- function(obsGrid){
     }
    }
   #right
-  if (all(cardinal) == right){
+  if (all(cardinal == right)){
     #spot 1
     if(obsGrid[aCur+right]==1){
          rightIR <- aCur[1]-aCur+right[1]/aCur[2]-aCur+right[2]
@@ -372,7 +377,7 @@ getLeftIR<- function(obsGrid){
     }
   }
 
-     if (all(cardinal) == left){
+     if (all(cardinal == left)){
     #spot 1
     if(obsGrid[aCur+left]==1){
          rightIR <- aCur[1]-aCur+left[1]/aCur[2]-aCur+left[2]
@@ -429,11 +434,9 @@ weights<- matrix(NA,length(input), length(output))
 Trial
 ```{r}
 makeMove<- function(obsGrid){
-options<- list(moveForward(obsGrid), moveBackward(obsGrid), turnClock(obsGrid), turnCounter(obsGrid))
-rand<-sample(1:4, 1, replace = TRUE)
-  move<- options[rand]
-  obsGrid<- move
-  
+  options<- c(moveForward, moveBackward, turnClock, turnCounter)
+  action <- sample(options, 1)
+  obsGrid <- action[[1]](obsGrid)
   return(obsGrid)
 }
 
@@ -441,6 +444,44 @@ rand<-sample(1:4, 1, replace = TRUE)
 
 ```
 
+
+```{r}
+
+runBot <- function(weights){
+
+  # make a starting environment / state
+  
+  # for loop 1:n.moves
+  #    accumulate light
+  #    makeMove <- pass in weights, state
+  #       makeMove gets sensor values
+  #       makeMove calls neural net
+  #       makeMove samples movement
+  
+  # return overall fitness
+}
+
+runGeneration <- function(genomes) {
+  fitness.vals <- data.frame(bot.number=1:40, fitness=rep(0,40))
+  for(i in 1:40){
+    fitness <- runBot(genomes[[i]])
+    fitness.vals[i, 'fitness'] <- fitness
+  }
+  return(fitness.vals)
+  # runBot for each genome in the data frame
+}
+
+createGeneration <- function(n){
+  genomes <- list()
+  for(i in 1:n){
+    genomes[[i]] <- matrix(runif(20, min=-1, max=1), nrow=5)    
+  }
+  return(genomes)
+}
+
+bots <- createGeneration(40)
+bots[[1]]
+```
 Next steps:
   run agent through grid world
   agent that makes random decisions
