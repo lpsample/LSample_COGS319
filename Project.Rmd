@@ -124,7 +124,7 @@ turnClock <- function(state){
   else if(all(cardinal == c(0,1))){
     cardinal <- c(1,0)
   }
-  return(obsGrid)
+  return(state)
 }
 turnCounter <- function(state){
   cardinal <- state[1]
@@ -161,7 +161,8 @@ age<- 0
 
 state <- list(
   cardinal = c(-1,0),
-  obsGrid = makeObsGrid(numRows, numCols)
+  obsGrid = makeObsGrid(numRows, numCols),
+  lightGrid = makeLightGrid(numRows, numCols)
 )
 
 obsGridTest <- moveForward(state)
@@ -193,59 +194,84 @@ left<- c(0, -1)
 rightLight<- 0
 leftLight<- 0
 
-getlight<- function(cardinal, obsGrid, lightGrid){
+getRightLight<- function(state){
+  cardinal <- state[1]
+  obsGrid <- state[2]
+  lightGrid <-state[3]
+  
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   #up
   if(all(cardinal== up)){
     rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+right], lightGrid[aCur+up+right])
-      leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+left], lightGrid[aCur+up+left])
+       }
+  
+  #right
+  else if(all(cardinal== right)){
+      rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+up], lightGrid[aCur+up+right])
+       }
+  #left
+    else if(all(cardinal== left)){
+    rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+up], lightGrid[aCur+up+left])
+      }
+  #down
+    else if(all(cardinal== down)){
+    rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+right], lightGrid[aCur+down+right])
+     }
+  
+ 
+  
+  return(rightLight)
+}
+
+getLeftLight<- function(state){
+  cardinal <- state[1]
+  obsGrid <- state[2]
+  lightGrid <-state[3]
+  
+  aCur<- which(obsGrid==0, arr.ind=TRUE)
+  #up
+  if(all(cardinal== up)){
+  leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+left], lightGrid[aCur+up+left])
   }
   
   #right
   else if(all(cardinal== right)){
-    rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+up], lightGrid[aCur+up+right])
-      leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down], lightGrid[aCur+down+right])
+     leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down], lightGrid[aCur+down+right])
   }
   #left
     else if(all(cardinal== left)){
-    rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+up], lightGrid[aCur+up+left])
-      leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down], lightGrid[aCur+down+left])
+leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down], lightGrid[aCur+down+left])
     }
   #down
     else if(all(cardinal== down)){
-    rightLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+right], lightGrid[aCur+down+right])
-      leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+left], lightGrid[aCur+down+left])
+   leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+left], lightGrid[aCur+down+left])
   }
   
-  acc<- acc + leftLight+rightLight
-  
-  return(acc)
+  return(leftLight)
 }
 
 
 ```
 Test for light
 ```{r}
-obsGridTest<- makeObsGrid(numRows, numCols)
-lightGridTest<- makeLightGrid(numRows, numCols)
-#begin facing up
-cardinal <- c(-1,0)
-acc<- 0
-age<- 0
+state <- list(
+  cardinal = c(-1,0),
+  obsGrid = makeObsGrid(numRows, numCols),
+  lightGrid = makeLightGrid(numRows, numCols)
+)
 
-obsGridTest <- moveForward(obsGridTest)
-light<- getlight(obsGridTest, lightGridTest)
-obsGridTest <- moveForward(obsGridTest)
-light<- getlight(obsGridTest, lightGridTest)
-cardinal<- turnClock(cardinal)
-light<- getlight(obsGridTest, lightGridTest)
-obsGridTest <- moveForward(obsGridTest)
-light<- getlight(obsGridTest, lightGridTest)
-accTest<- light
+#begin facing up
+
+stateTest <- moveForward(state)
+LLight<- getlight(stateTest)
+obsGridTest <- moveForward(stateTest)
+RLight<- getRightLight(stateTest)
+stateTest<- turnClock(stateTest)
+LLight<- getLeftLight(stateTest)
+stateTest <- moveForward(stateTest)
+
 
 ```
-
-
 Get ir
 returns the distance of the closest block
 
@@ -255,14 +281,14 @@ right<- c(0, 1)
 up<- c(-1,0)
 left<- c(0, -1)
 
-
-
 ```{r}
-
 leftIR<- 0
 rightIR<-0
 
-getRightIR<- function(obsGrid){
+getRightIR<- function(state){
+    cardinal <- state[1]
+  obsGrid <- state[2]
+  lightGrid <-state[3]
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   #up
   #checks for both Right  IR, they include the two spaces in front, sets to distance between,
@@ -339,7 +365,11 @@ getRightIR<- function(obsGrid){
 }
     
     
-getLeftIR<- function(obsGrid){
+getLeftIR<- function(state){
+    cardinal <- state[1]
+  obsGrid <- state[2]
+  lightGrid <-state[3]
+  
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   if(all(cardinal== up)){ 
     #if item in spot 1 (up), IR = distance
@@ -404,14 +434,19 @@ getLeftIR<- function(obsGrid){
   }   
  
   return(abs(leftIR))
-  }
+}
+
   
   
 ```
 getBump
 ```{r}
 bump <- 0
-getBump<- function(obsGrid){
+getBump<- function(state){
+      cardinal <- state[1]
+  obsGrid <- state[2]
+  lightGrid <-state[3]
+  
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   if(is.na(obsGrid[aCur+cardinal])){
     bump<-0
@@ -433,6 +468,14 @@ counter <- 0
 fwd <- 0
 back <- 0
 
+update<- function(state){
+    getLeftIR(state)
+    getRightIR(state)
+    getLeftLight(state)
+    getRightLight(state)
+    getBump(state)
+}
+
 input<- c(leftLight,leftIR, bump, rightIR, rightLight) 
 output <- c(clock, counter, fwd, back)
 weights<- matrix(NA,length(input), length(output))
@@ -453,14 +496,29 @@ makeMove<- function(obsGrid){
 
 
 ```
-
+upate sensor vals
 
 ```{r}
+N.bot <- 100
+N.gen <- 100
 
 runBot <- function(weights){
 
   # make a starting environment / state
+  state <- list(
+  cardinal = c(-1,0),
+  obsGrid = makeObsGrid(numRows, numCols),
+  lightGrid = makeLightGrid(numRows, numCols)
+)
   
+  for (i in N.bot){
+    getLeftIR(state)
+    getRightIR(state)
+    getLeftLight(state)
+    getRightLight(state)
+    getBump(state)
+  }
+    
   # for loop 1:n.moves
   #    accumulate light
   #    makeMove <- pass in weights, state
