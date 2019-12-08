@@ -83,24 +83,31 @@ y, x
 (-1,0) -> up
 (0, -1) -> left
 ```{r}
-moveForward <-function(obsGrid){
+moveForward <-function(state){
+  cardinal <- state[1]
+  obsGrid <- state[2]
+  
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   if(is.na(obsGrid[aCur+cardinal])){
     obsGrid[aCur]<- NA
     obsGrid[aCur+cardinal]<- 0
   }
-  return(obsGrid)
+  return(state)
 }
-moveBackward <-function(obsGrid){
+moveBackward <-function(state){
+  cardinal <- state[1]
+  obsGrid <- state[2]
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   if(is.na(obsGrid[aCur-cardinal])){
     obsGrid[aCur]<- NA
     obsGrid[aCur-cardinal]<- 0
   }
-   return(obsGrid)
+   return(state)
 }
 
-turnClock <- function(obsGrid){
+turnClock <- function(state){
+  cardinal <- state[1]
+  obsGrid <- state[2]
   #if down, turn left
   if(all(cardinal == c(1,0))){
     cardinal <- c(0,-1)
@@ -119,7 +126,9 @@ turnClock <- function(obsGrid){
   }
   return(obsGrid)
 }
-turnCounter <- function(obsGrid){
+turnCounter <- function(state){
+  cardinal <- state[1]
+  obsGrid <- state[2]
   #if left, turn down
   if(all(cardinal == c(0,-1))){
     cardinal <- c(1,0)
@@ -136,7 +145,7 @@ turnCounter <- function(obsGrid){
   else if(all(cardinal == c(1,0))){
     cardinal <- c(0,1)
   }
-  return(obsGrid)
+  return(state)
 }
 
 ```
@@ -155,10 +164,11 @@ state <- list(
   obsGrid = makeObsGrid(numRows, numCols)
 )
 
-obsGridTest <- moveForward(obsGridTest)
-obsGridTest <- moveForward(obsGridTest)
-cardinal<- turnClock(cardinal)
-obsGridTest <- moveForward(obsGridTest)
+obsGridTest <- moveForward(state)
+obsGridTest <- moveForward(state)
+state<- turnClock(state)
+obsGridTest <- moveForward(state)
+state[2]
 
 ```
 
