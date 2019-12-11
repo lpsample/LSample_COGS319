@@ -92,6 +92,7 @@ moveForward <-function(state){
     obsGrid[aCur]<- NA
     obsGrid[aCur+cardinal]<- 0
   }
+  state[[2]] <- obsGrid
   return(state)
 }
 moveBackward <-function(state){
@@ -102,6 +103,7 @@ moveBackward <-function(state){
     obsGrid[aCur]<- NA
     obsGrid[aCur-cardinal]<- 0
   }
+  state[[2]] <- obsGrid
    return(state)
 }
 
@@ -124,6 +126,7 @@ turnClock <- function(state){
   else if(all(cardinal == c(0,1))){
     cardinal <- c(1,0)
   }
+  state[[1]] <- cardinal
   return(state)
 }
 turnCounter <- function(state){
@@ -145,6 +148,7 @@ turnCounter <- function(state){
   else if(all(cardinal == c(1,0))){
     cardinal <- c(0,1)
   }
+  state[[1]] <- cardinal
   return(state)
 }
 
@@ -500,7 +504,7 @@ makeMove<- function(weights, state){
   #OR for loop, dot product (sum, vector * vector)
   
   for (i in 1:length(output)){
-      output[i]<-sum(input*weights[,i])
+      output[i]<- 1 / (1 + exp(-sum(input*weights[,i])))
     
   }
   sum.output<- sum(output)
@@ -514,9 +518,9 @@ makeMove<- function(weights, state){
   
   
   action <- sample(c(moveForward,moveBackward, turnClock, turnCounter),1,  prob=adj.output)
-  state <- action[[1]](obsGrid)
+  new.state <- action[[1]](state)
 
-  return(state)
+  return(new.state)
 }
 ```
 TEST
@@ -536,17 +540,20 @@ makeRandWeights <- function(){
 
 setUp<- function(numRows, numCols){
   state <- list(
-  cardinal = c(-1,0),
-  obsGrid = makeObsGrid(numRows, numCols),
-  lightGrid = makeLightGrid(numRows, numCols)
-)
+    cardinal = c(-1,0),
+    obsGrid = makeObsGrid(numRows, numCols),
+    lightGrid = makeLightGrid(numRows, numCols)
+  )
   weights <- makeRandWeights()
-return(state)
-  }
+  return(state)
+}
 
 test1.state <- setUp(10, 10)
 weights <- makeRandWeights()
-test1.state <- makeMove(weights,test1.state)
+for(i in 1:100){
+  test1.state <- makeMove(weights,test1.state)
+}
+
 
 
 
@@ -566,30 +573,18 @@ N.gen <- 100
 runBot <- function(weights){
 
   # make a starting environment / state
-  state <- list(
-  cardinal = c(-1,0),
-  obsGrid = makeObsGrid(numRows, numCols),
-  lightGrid = makeLightGrid(numRows, numCols)
-)
-  
-  for (i in N.bot){
-    getLeftIR(state)
-    getRightIR(state)
-    getLeftLight(state)
-    getRightLight(state)
-    getBump(state)
+  state <- setUp(10, 10)
+  total.light <- 0
+  for(i in 1:100){
+    state <- makeMove(weights, state)
+    total.light <- total.light + getLeftLight(state) + getRightLight(state)
   }
-    
-  # for loop 1:n.moves
-  #    accumulate light
-  #    makeMove <- pass in weights, state
-  #       makeMove gets sensor values
-  #       makeMove calls neural net
-  #       makeMove samples movement
   
-  # return overall fitness
+  return(total.light)
 }
 
+runBot(makeRandWeights())
+  
 runGeneration <- function(genomes) {
   fitness.vals <- data.frame(bot.number=1:40, fitness=rep(0,40))
   for(i in 1:40){
@@ -609,7 +604,7 @@ createGeneration <- function(n){
 }
 
 bots <- createGeneration(40)
-bots[[1]]
+runGeneration(bots)
 ```
 Next steps:
   run agent through grid world
