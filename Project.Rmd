@@ -586,8 +586,8 @@ runBot <- function(weights){
 runBot(makeRandWeights())
   
 runGeneration <- function(genomes) {
-  fitness.vals <- data.frame(bot.number=1:40, fitness=rep(0,40))
-  for(i in 1:40){
+  fitness.vals <- data.frame(bot.number=1:100, fitness=rep(0,100))
+  for(i in 1:100){
     fitness <- runBot(genomes[[i]])
     fitness.vals[i, 'fitness'] <- fitness
   }
@@ -603,7 +603,7 @@ createGeneration <- function(n){
   return(genomes)
 }
 
-bots <- createGeneration(40)
+bots <- createGeneration(100)
 runGeneration(bots)
 ```
 Next steps:
