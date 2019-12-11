@@ -84,8 +84,8 @@ y, x
 (0, -1) -> left
 ```{r}
 moveForward <-function(state){
-  cardinal <- state[1]
-  obsGrid <- state[2]
+  cardinal <- state[[1]]
+  obsGrid <- state[[2]]
   
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   if(is.na(obsGrid[aCur+cardinal])){
@@ -95,8 +95,8 @@ moveForward <-function(state){
   return(state)
 }
 moveBackward <-function(state){
-  cardinal <- state[1]
-  obsGrid <- state[2]
+  cardinal <- state[[1]]
+  obsGrid <- state[[2]]
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   if(is.na(obsGrid[aCur-cardinal])){
     obsGrid[aCur]<- NA
@@ -106,8 +106,8 @@ moveBackward <-function(state){
 }
 
 turnClock <- function(state){
-  cardinal <- state[1]
-  obsGrid <- state[2]
+  cardinal <- state[[1]]
+  obsGrid <- state[[2]]
   #if down, turn left
   if(all(cardinal == c(1,0))){
     cardinal <- c(0,-1)
@@ -127,8 +127,8 @@ turnClock <- function(state){
   return(state)
 }
 turnCounter <- function(state){
-  cardinal <- state[1]
-  obsGrid <- state[2]
+  cardinal <- state[[1]]
+  obsGrid <- state[[2]]
   #if left, turn down
   if(all(cardinal == c(0,-1))){
     cardinal <- c(1,0)
@@ -195,9 +195,9 @@ rightLight<- 0
 leftLight<- 0
 
 getRightLight<- function(state){
-  cardinal <- state[1]
-  obsGrid <- state[2]
-  lightGrid <-state[3]
+  cardinal <- state[[1]]
+  obsGrid <- state[[2]]
+  lightGrid <-state[[3]]
   
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   #up
@@ -224,9 +224,9 @@ getRightLight<- function(state){
 }
 
 getLeftLight<- function(state){
-  cardinal <- state[1]
-  obsGrid <- state[2]
-  lightGrid <-state[3]
+  cardinal <- state[[1]]
+  obsGrid <- state[[2]]
+  lightGrid <-state[[3]]
   
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   #up
@@ -263,7 +263,7 @@ state <- list(
 #begin facing up
 
 stateTest <- moveForward(state)
-LLight<- getlight(stateTest)
+LLight<- getLeftLight(stateTest)
 obsGridTest <- moveForward(stateTest)
 RLight<- getRightLight(stateTest)
 stateTest<- turnClock(stateTest)
@@ -286,9 +286,9 @@ leftIR<- 0
 rightIR<-0
 
 getRightIR<- function(state){
-    cardinal <- state[1]
-  obsGrid <- state[2]
-  lightGrid <-state[3]
+    cardinal <- state[[1]]
+  obsGrid <- state[[2]]
+  lightGrid <-state[[3]]
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   #up
   #checks for both Right  IR, they include the two spaces in front, sets to distance between,
@@ -299,31 +299,31 @@ getRightIR<- function(state){
   #up direction
   if(all(cardinal== up)){ 
     #if item in spot 1 (up), IR = distance
-    if(obsGrid[aCur+up]==1){
+    if(!is.na(obsGrid[aCur+up])){
       rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
       #if item in spot 2 (right), IR = distance
-    } else if (obsGrid[aCur+up+right]){
+    } else if (!is.na(obsGrid[aCur+up+right])){
       rightIR <- aCur[1]-aCur+up+right[1]/aCur[2]-aCur+up+right[2]
       #if item in spot 3, IR= distance
-    } else if (obsGrid[aCur+up+up]==1){
+    } else if (!is.na(obsGrid[aCur+up+up])){
       rightIR <- aCur[1]-aCur+up+up[1]/aCur[2]-aCur+up+up[2]
       #if item in spot 4, IR = distance
-    } else if (obsGrid[aCur+up+up+right]==1){
+    } else if (!is.na(obsGrid[aCur+up+up+right])){
       rightIR <- aCur[1]-aCur+up+up+right[1]/aCur[2]-aCur+up+up+right[2]
     }}
   #down direction
   if (all(cardinal == down)){
     #spot 1
-    if(obsGrid[aCur+down]==1){
+    if(!is.na(obsGrid[aCur+down])){
          rightIR <- aCur[1]-aCur+down[1]/aCur[2]-aCur+down[2]
          #spot 2
-    } else if (obsGrid[aCur+down+right]==1){
+    } else if (!is.na(obsGrid[aCur+down+right])){
        rightIR <- aCur[1]-aCur+down+right[1]/aCur[2]-aCur+down+right[2]
        #spot 3
-    } else if (obsGrid[aCur+down+down]==1){
+    } else if (!is.na(obsGrid[aCur+down+down])){
     rightIR <- aCur[1]-aCur+down+down[1]/aCur[2]-aCur+down+down[2]
     #spot 4
-    } else if (obsGrid[aCur+down+down+right]){
+    } else if (!is.na(obsGrid[aCur+down+down+right])){
       rightIR <- aCur[1]-aCur+down+down+right[1]/aCur[2]-aCur+down+down+right[2]
     }
   }
@@ -331,32 +331,32 @@ getRightIR<- function(state){
   #right direction
   if (all(cardinal == right)){
     #spot 1
-    if(obsGrid[aCur+right]==1){
+    if(!is.na(obsGrid[aCur+right])){
          rightIR <- aCur[1]-aCur+right[1]/aCur[2]-aCur+right[2]
          #spot 2
-    } else if (obsGrid[aCur+down+right]==1){
+    } else if (!is.na(obsGrid[aCur+down+right])){
        rightIR <- aCur[1]-aCur+down+right[1]/aCur[2]-aCur+down+right[2]
        #spot 3
-    } else if (obsGrid[aCur+right+right]==1){
+    } else if (!is.na(obsGrid[aCur+right+right])){
     rightIR <- aCur[1]-aCur+right+right[1]/aCur[2]-aCur+right+right[2]
     #spot 4
-    } else if (obsGrid[aCur+down+right+right]){
+    } else if (!is.na(obsGrid[aCur+down+right+right])){
       rightIR <- aCur[1]-aCur+down+right+right[1]/aCur[2]-aCur+down+right+right[2]
     }
   }
   
   if (all(cardinal == left)){
     #spot 1
-    if(obsGrid[aCur+left]==1){
+    if(!is.na(obsGrid[aCur+left])){
          rightIR <- aCur[1]-aCur+left[1]/aCur[2]-aCur+left[2]
          #spot 2
-    } else if (obsGrid[aCur+up+left]==1){
+    } else if (!is.na(obsGrid[aCur+up+left])){
        rightIR <- aCur[1]-aCur+up+left[1]/aCur[2]-aCur+up+left[2]
        #spot 3
-    } else if (obsGrid[aCur+left+left]==1){
+    } else if (!is.na(obsGrid[aCur+left+left])){
     rightIR <- aCur[1]-aCur+left+left[1]/aCur[2]-aCur+left+left[2]
     #spot 4
-    } else if (obsGrid[aCur+up+left+left]){
+    } else if (!is.na(obsGrid[aCur+up+left+left])){
       rightIR <- aCur[1]-aCur+up+left+left[1]/aCur[2]-aCur+up+left+left[2]
     }
   }
@@ -366,69 +366,69 @@ getRightIR<- function(state){
     
     
 getLeftIR<- function(state){
-    cardinal <- state[1]
-  obsGrid <- state[2]
-  lightGrid <-state[3]
+    cardinal <- state[[1]]
+  obsGrid <- state[[2]]
+  lightGrid <-state[[3]]
   
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   if(all(cardinal== up)){ 
     #if item in spot 1 (up), IR = distance
-    if(obsGrid[aCur+up]==1){
+    if(!is.na(obsGrid[aCur+up])){
       rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
       #if item in spot 2 (left), IR = distance
-    } else if (obsGrid[aCur+up+leftIR]){
+    } else if (!is.na(obsGrid[aCur+up+leftIR])){
       rightIR <- aCur[1]-aCur+up+left[1]/aCur[2]-aCur+up+left[2]
       #if item in spot 3, IR= distance
-    } else if (obsGrid[aCur+up+up]==1){
+    } else if (!is.na(obsGrid[aCur+up+up])){
       rightIR <- aCur[1]-aCur+up+up[1]/aCur[2]-aCur+up+up[2]
       #if item in spot 4, IR = distance
-    } else if (obsGrid[aCur+up+up+left]==1){
+    } else if (!is.na(obsGrid[aCur+up+up+left])){
       rightIR <- aCur[1]-aCur+up+up+left[1]/aCur[2]-aCur+up+up+leftIR[2]
     }}
    if (all(cardinal == down)){
     #spot 1
-    if(obsGrid[aCur+down]==1){
+    if(!is.na(obsGrid[aCur+down])){
          rightIR <- aCur[1]-aCur+down[1]/aCur[2]-aCur+down[2]
          #spot 2
-    } else if (obsGrid[aCur+down+left]==1){
+    } else if (!is.na(obsGrid[aCur+down+left])){
        rightIR <- aCur[1]-aCur+down+left[1]/aCur[2]-aCur+down+left[2]
        #spot 3
-    } else if (obsGrid[aCur+down+down]==1){
+    } else if (!is.na(obsGrid[aCur+down+down])){
     rightIR <- aCur[1]-aCur+down+down[1]/aCur[2]-aCur+down+down[2]
     #spot 4
-    } else if (obsGrid[aCur+down+down+left]){
+    } else if (!is.na(obsGrid[aCur+down+down+left])){
       rightIR <- aCur[1]-aCur+down+down+left[1]/aCur[2]-aCur+down+down+left[2]
     }
    }
   #right
   if (all(cardinal == right)){
     #spot 1
-    if(obsGrid[aCur+right]==1){
+    if(!is.na(obsGrid[aCur+right])){
          rightIR <- aCur[1]-aCur+right[1]/aCur[2]-aCur+right[2]
          #spot 2
-    } else if (obsGrid[aCur+up+right]==1){
+    } else if (!is.na(obsGrid[aCur+up+right])){
        rightIR <- aCur[1]-aCur+up+right[1]/aCur[2]-aCur+up+right[2]
        #spot 3
-    } else if (obsGrid[aCur+right+right]==1){
+    } else if (!is.na(obsGrid[aCur+right+right])){
     rightIR <- aCur[1]-aCur+right+right[1]/aCur[2]-aCur+right+right[2]
     #spot 4
-    } else if (obsGrid[aCur+up+right+right]){
+    } else if (!is.na(obsGrid[aCur+up+right+right])){
       rightIR <- aCur[1]-aCur+up+right+right[1]/aCur[2]-aCur+up+right+right[2]
     }
   }
 
      if (all(cardinal == left)){
     #spot 1
-    if(obsGrid[aCur+left]==1){
+    if(!is.na(obsGrid[aCur+left])){
          rightIR <- aCur[1]-aCur+left[1]/aCur[2]-aCur+left[2]
          #spot 2
-    } else if (obsGrid[aCur+down+left]==1){
+    } else if (!is.na(obsGrid[aCur+down+left])){
        rightIR <- aCur[1]-aCur+down+left[1]/aCur[2]-aCur+down+left[2]
        #spot 3
-    } else if (obsGrid[aCur+left+left]==1){
+    } else if (!is.na(obsGrid[aCur+left+left])){
     rightIR <- aCur[1]-aCur+left+left[1]/aCur[2]-aCur+left+left[2]
     #spot 4
-    } else if (obsGrid[aCur+down+left+left]){
+    } else if (!is.na(obsGrid[aCur+down+left+left])){
       rightIR <- aCur[1]-aCur+down+left+left[1]/aCur[2]-aCur+down+left+left[2]
     }
   }   
@@ -443,9 +443,9 @@ getBump
 ```{r}
 bump <- 0
 getBump<- function(state){
-      cardinal <- state[1]
-  obsGrid <- state[2]
-  lightGrid <-state[3]
+      cardinal <- state[[1]]
+  obsGrid <- state[[2]]
+  lightGrid <-state[[3]]
   
   aCur<- which(obsGrid==0, arr.ind=TRUE)
   if(is.na(obsGrid[aCur+cardinal])){
@@ -468,34 +468,95 @@ counter <- 0
 fwd <- 0
 back <- 0
 
-update<- function(state){
-    getLeftIR(state)
-    getRightIR(state)
-    getLeftLight(state)
-    getRightLight(state)
-    getBump(state)
+updateInput<- function(state){
+    leftIR<- getLeftIR(state)
+    rightIR<- getRightIR(state)
+    leftLight<- getLeftLight(state)
+    rightLight<- getRightLight(state)
+    bump<- getBump(state)
+    
+    input<- c(leftLight,leftIR, bump, rightIR, rightLight) 
+    return(input)
 }
 
-input<- c(leftLight,leftIR, bump, rightIR, rightLight) 
+#input<- c(leftLight,leftIR, bump, rightIR, rightLight) 
 output <- c(clock, counter, fwd, back)
 weights<- matrix(NA,length(input), length(output))
-
-
-
 ```
 
 Trial
 ```{r}
-makeMove<- function(obsGrid){
-  options<- c(moveForward, moveBackward, turnClock, turnCounter)
-  action <- sample(options, 1)
-  obsGrid <- action[[1]](obsGrid)
-  return(obsGrid)
+makeMove<- function(weights, state){
+  cardinal <- state[[1]]
+  obsGrid <- state[[2]]
+  lightGrid <-state[[3]]
+  
+  input<- updateInput(state)
+  
+  output<- c(0,0,0,0)
+  #weights<- matrix(NA,length(input), length(output))
+  
+  #matrix and input vector, matrix multiplication (dot product of every column)
+  #OR for loop, dot product (sum, vector * vector)
+  
+  for (i in 1:length(output)){
+      output[i]<-sum(input*weights[,i])
+    
+  }
+  sum.output<- sum(output)
+  adj.output <- output/sum.output
+  #adj.output <- apply(output,1,function(x) x/sum.output)
+  
+  #softmax pull from lab
+ # e-temp * val / 
+    #divide all by sum of all
+  
+  
+  
+  action <- sample(c(moveForward,moveBackward, turnClock, turnCounter),1,  prob=adj.output)
+  state <- action[[1]](obsGrid)
+
+  return(state)
 }
+```
+TEST
+```{r}
+
+makeRandWeights <- function(){
+  output<- c(moveForward, moveBackward, turnClock, turnCounter)
+  weight.options<- c(-1, -.5, 0, .5, 1)
+  weights<- matrix(NA,5, length(output))
+  for (row in 1:nrow(weights)){
+    for (col in 1:ncol(weights))
+    weights[row,col] <- sample(weight.options, 1)
+  }
+  return (weights)
+}
+
+
+setUp<- function(numRows, numCols){
+  state <- list(
+  cardinal = c(-1,0),
+  obsGrid = makeObsGrid(numRows, numCols),
+  lightGrid = makeLightGrid(numRows, numCols)
+)
+  weights <- makeRandWeights()
+return(state)
+  }
+
+test1.state <- setUp(10, 10)
+weights <- makeRandWeights()
+test1.state <- makeMove(weights,test1.state)
+
 
 
 
 ```
+
+
+
+
+
 upate sensor vals
 
 ```{r}
