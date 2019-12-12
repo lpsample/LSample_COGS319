@@ -44,7 +44,9 @@ makeObsGrid<- function(numRows, numCols){
 
     obsGrid[numRows-1, round(numCols/2)]<- 0
     return(obsGrid)
-    }
+}
+
+#dynamicNums<-
 
 obsGrid<- makeObsGrid(numRows, numCols)
 lightGrid<- makeLightGrid(numRows, numCols)
@@ -304,16 +306,16 @@ getRightIR<- function(state){
   if(all(cardinal== up)){ 
     #if item in spot 1 (up), IR = distance
     if(!is.na(obsGrid[aCur+up])){
-      rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
+      rightIR <- dist(rbind(aCur, aCur + up))[1]
       #if item in spot 2 (right), IR = distance
     } else if (!is.na(obsGrid[aCur+up+right])){
-      rightIR <- aCur[1]-aCur+up+right[1]/aCur[2]-aCur+up+right[2]
+      rightIR <- dist(rbind(aCur, aCur + up + right))[1]
       #if item in spot 3, IR= distance
     } else if (!is.na(obsGrid[aCur+up+up])){
-      rightIR <- aCur[1]-aCur+up+up[1]/aCur[2]-aCur+up+up[2]
+      rightIR <- dist(rbind(aCur, aCur + up + up))[1]
       #if item in spot 4, IR = distance
     } else if (!is.na(obsGrid[aCur+up+up+right])){
-      rightIR <- aCur[1]-aCur+up+up+right[1]/aCur[2]-aCur+up+up+right[2]
+      rightIR <- dist(rbind(aCur, aCur + up + up + right))[1]
     }}
   #down direction
   if (all(cardinal == down)){
@@ -483,9 +485,6 @@ updateInput<- function(state){
     return(input)
 }
 
-#input<- c(leftLight,leftIR, bump, rightIR, rightLight) 
-output <- c(clock, counter, fwd, back)
-weights<- matrix(NA,length(input), length(output))
 ```
 
 Trial
@@ -519,6 +518,8 @@ makeMove<- function(weights, state){
   
   action <- sample(c(moveForward,moveBackward, turnClock, turnCounter),1,  prob=adj.output)
   new.state <- action[[1]](state)
+  
+  state <- new.state
 
   return(new.state)
 }
@@ -586,7 +587,7 @@ runBot <- function(weights){
 runBot(makeRandWeights())
   
 runGeneration <- function(genomes) {
-  fitness.vals <- data.frame(bot.number=1:100, fitness=rep(0,100))
+  fitness.vals <- data.frame(bot.number=1:10, fitness=rep(0,10))
   for(i in 1:100){
     fitness <- runBot(genomes[[i]])
     fitness.vals[i, 'fitness'] <- fitness
@@ -595,16 +596,45 @@ runGeneration <- function(genomes) {
   # runBot for each genome in the data frame
 }
 
-createGeneration <- function(n){
+createStaticGeneration <- function(n){
+  
   genomes <- list()
   for(i in 1:n){
-    genomes[[i]] <- matrix(runif(20, min=-1, max=1), nrow=5)    
+    #setUp(10,10)
+    genomes[[i]] <- makeRandWeights()    
   }
   return(genomes)
 }
 
-bots <- createGeneration(100)
-runGeneration(bots)
+# test1.state <- setUp(10, 10)
+# weights <- makeRandWeights()
+# for(i in 1:100){
+#   test1.state <- makeMove(weights,test1.state)
+# }
+
+bots <- createStaticGeneration(10)
+generation.results <- runGeneration(bots)
+
+next.generation <- sample(generation.results$bot.number, 10, replace=T, prob = generation.results$fitness)
+next.generation <- c(1,1,1,1,4,5,6,3,3,4)
+
+next.bots <- bots[next.generation]
+
+mutate <- function(weights){
+  new.weights <- weights
+  length(new.weights)
+  new.weights <- rnorm(length(weights), mean=weights, sd=0.05)
+  #10% mutation, change weights
+}
+
+#for loop, 1 to total gens, does all steps
+
+#mutates genomes
+for (i in 1:length(next.bots)){
+   next.bots[[i]] <- mutate(next.bots[[i]])
+}
+
+
 ```
 Next steps:
   run agent through grid world
