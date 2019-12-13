@@ -17,11 +17,10 @@ more than 1, drops off faster
   numCols<- 10
 
 makeLightGrid<- function(numRows, numCols){
-
-  
   lightGrid<- matrix(NA, numRows, numCols)
   for(x in 1:numCols){
     for(y in 1:numRows){
+      #puts in middle of grid
       distance <- sqrt((0-y)^2+((numCols+1)/2-x)^2)
       lightGrid[y,x] <- round(255*exp(-distance*.5))
     }
@@ -45,8 +44,20 @@ makeObsGrid<- function(numRows, numCols){
     obsGrid[numRows-1, round(numCols/2)]<- 0
     return(obsGrid)
 }
+#gets random numbers that make a 100 square grid
+dynamicNums<-function(){
+  #cant have 100x1 and 2x50, no obstacle options
+  listy<- list( c(20,5), c(5, 20), c(10,10), c(4, 25), c(25, 4))
+  listNums<- (sample(listy, 1))
+  pairNums<- listNums[[1]]
+  nRows<- pairNums[[1]]
+  nCols <- pairNums[[2]]
+  return (c(nRows, nCols))
+}
 
-#dynamicNums<-
+dy<- dynamicNums()
+test<-makeObsGrid(dy[1], dy[2])
+
 
 obsGrid<- makeObsGrid(numRows, numCols)
 lightGrid<- makeLightGrid(numRows, numCols)
@@ -321,16 +332,16 @@ getRightIR<- function(state){
   if (all(cardinal == down)){
     #spot 1
     if(!is.na(obsGrid[aCur+down])){
-         rightIR <- aCur[1]-aCur+down[1]/aCur[2]-aCur+down[2]
+         rightIR <- dist(rbind(aCur, aCur + down))[1]
          #spot 2
     } else if (!is.na(obsGrid[aCur+down+right])){
-       rightIR <- aCur[1]-aCur+down+right[1]/aCur[2]-aCur+down+right[2]
+       rightIR <- dist(rbind(aCur, aCur + down + right))[1]
        #spot 3
     } else if (!is.na(obsGrid[aCur+down+down])){
-    rightIR <- aCur[1]-aCur+down+down[1]/aCur[2]-aCur+down+down[2]
+    rightIR <- dist(rbind(aCur, aCur + down + down))[1]
     #spot 4
     } else if (!is.na(obsGrid[aCur+down+down+right])){
-      rightIR <- aCur[1]-aCur+down+down+right[1]/aCur[2]-aCur+down+down+right[2]
+      rightIR <- dist(rbind(aCur, aCur + down + down + right))[1]
     }
   }
   
@@ -341,29 +352,29 @@ getRightIR<- function(state){
          rightIR <- aCur[1]-aCur+right[1]/aCur[2]-aCur+right[2]
          #spot 2
     } else if (!is.na(obsGrid[aCur+down+right])){
-       rightIR <- aCur[1]-aCur+down+right[1]/aCur[2]-aCur+down+right[2]
+       rightIR <- dist(rbind(aCur, aCur + down + right))[1]
        #spot 3
     } else if (!is.na(obsGrid[aCur+right+right])){
-    rightIR <- aCur[1]-aCur+right+right[1]/aCur[2]-aCur+right+right[2]
+    rightIR <- dist(rbind(aCur, aCur + right + right))[1]
     #spot 4
     } else if (!is.na(obsGrid[aCur+down+right+right])){
-      rightIR <- aCur[1]-aCur+down+right+right[1]/aCur[2]-aCur+down+right+right[2]
+      rightIR <- dist(rbind(aCur, aCur + down + right + right))[1]
     }
   }
   
   if (all(cardinal == left)){
     #spot 1
     if(!is.na(obsGrid[aCur+left])){
-         rightIR <- aCur[1]-aCur+left[1]/aCur[2]-aCur+left[2]
+         rightIR <- dist(rbind(aCur, aCur + left))[1]
          #spot 2
     } else if (!is.na(obsGrid[aCur+up+left])){
-       rightIR <- aCur[1]-aCur+up+left[1]/aCur[2]-aCur+up+left[2]
+       rightIR <- dist(rbind(aCur, aCur + up + left))[1]
        #spot 3
     } else if (!is.na(obsGrid[aCur+left+left])){
-    rightIR <- aCur[1]-aCur+left+left[1]/aCur[2]-aCur+left+left[2]
+    rightIR <- dist(rbind(aCur, aCur + left + left))[1]
     #spot 4
     } else if (!is.na(obsGrid[aCur+up+left+left])){
-      rightIR <- aCur[1]-aCur+up+left+left[1]/aCur[2]-aCur+up+left+left[2]
+      rightIR <- dist(rbind(aCur, aCur + up + left + left))[1]
     }
   }
   
@@ -380,62 +391,62 @@ getLeftIR<- function(state){
   if(all(cardinal== up)){ 
     #if item in spot 1 (up), IR = distance
     if(!is.na(obsGrid[aCur+up])){
-      rightIR <- aCur[1]-aCur+up[1]/aCur[2]-aCur+up[2]
+      leftIR <- dist(rbind(aCur, aCur + up))[1]
       #if item in spot 2 (left), IR = distance
-    } else if (!is.na(obsGrid[aCur+up+leftIR])){
-      rightIR <- aCur[1]-aCur+up+left[1]/aCur[2]-aCur+up+left[2]
+    } else if (!is.na(obsGrid[aCur+up+left])){
+      leftIR <- dist(rbind(aCur, aCur + up + left))[1]
       #if item in spot 3, IR= distance
     } else if (!is.na(obsGrid[aCur+up+up])){
-      rightIR <- aCur[1]-aCur+up+up[1]/aCur[2]-aCur+up+up[2]
+     leftIR <- dist(rbind(aCur, aCur + up + up))[1]
       #if item in spot 4, IR = distance
     } else if (!is.na(obsGrid[aCur+up+up+left])){
-      rightIR <- aCur[1]-aCur+up+up+left[1]/aCur[2]-aCur+up+up+leftIR[2]
+      leftIR <- dist(rbind(aCur, aCur + up + up + left))[1]
     }}
    if (all(cardinal == down)){
     #spot 1
     if(!is.na(obsGrid[aCur+down])){
-         rightIR <- aCur[1]-aCur+down[1]/aCur[2]-aCur+down[2]
+         leftIR <- dist(rbind(aCur, aCur + down))[1]
          #spot 2
     } else if (!is.na(obsGrid[aCur+down+left])){
-       rightIR <- aCur[1]-aCur+down+left[1]/aCur[2]-aCur+down+left[2]
+       leftIR <- dist(rbind(aCur, aCur + down + left))[1]
        #spot 3
     } else if (!is.na(obsGrid[aCur+down+down])){
-    rightIR <- aCur[1]-aCur+down+down[1]/aCur[2]-aCur+down+down[2]
+    leftIR <- dist(rbind(aCur, aCur + down + down))[1]
     #spot 4
     } else if (!is.na(obsGrid[aCur+down+down+left])){
-      rightIR <- aCur[1]-aCur+down+down+left[1]/aCur[2]-aCur+down+down+left[2]
+      leftIR <- dist(rbind(aCur, aCur + down + down + left))[1]
     }
    }
   #right
   if (all(cardinal == right)){
     #spot 1
     if(!is.na(obsGrid[aCur+right])){
-         rightIR <- aCur[1]-aCur+right[1]/aCur[2]-aCur+right[2]
+         leftIR <- dist(rbind(aCur, aCur + right))[1]
          #spot 2
     } else if (!is.na(obsGrid[aCur+up+right])){
-       rightIR <- aCur[1]-aCur+up+right[1]/aCur[2]-aCur+up+right[2]
+       leftIR <- dist(rbind(aCur, aCur + right))[1]
        #spot 3
     } else if (!is.na(obsGrid[aCur+right+right])){
-    rightIR <- aCur[1]-aCur+right+right[1]/aCur[2]-aCur+right+right[2]
+    leftIR <- dist(rbind(aCur, aCur + right + right))[1]
     #spot 4
     } else if (!is.na(obsGrid[aCur+up+right+right])){
-      rightIR <- aCur[1]-aCur+up+right+right[1]/aCur[2]-aCur+up+right+right[2]
+      leftIR <- dist(rbind(aCur, aCur + up + right + right))[1]
     }
   }
 
      if (all(cardinal == left)){
     #spot 1
     if(!is.na(obsGrid[aCur+left])){
-         rightIR <- aCur[1]-aCur+left[1]/aCur[2]-aCur+left[2]
+        leftIR <- dist(rbind(aCur, aCur + left))[1]
          #spot 2
     } else if (!is.na(obsGrid[aCur+down+left])){
-       rightIR <- aCur[1]-aCur+down+left[1]/aCur[2]-aCur+down+left[2]
+       leftIR <- dist(rbind(aCur, aCur + down + left))[1]
        #spot 3
     } else if (!is.na(obsGrid[aCur+left+left])){
-    rightIR <- aCur[1]-aCur+left+left[1]/aCur[2]-aCur+left+left[2]
+   leftIR <- dist(rbind(aCur, aCur + left + left))[1]
     #spot 4
     } else if (!is.na(obsGrid[aCur+down+left+left])){
-      rightIR <- aCur[1]-aCur+down+left+left[1]/aCur[2]-aCur+down+left+left[2]
+      leftIR <- dist(rbind(aCur, aCur + down + left + left))[1]
     }
   }   
  
