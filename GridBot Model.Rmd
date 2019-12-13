@@ -1,7 +1,9 @@
 ---
-title: "COGS 319 Project"
+title: "GridBot Model"
 output: html_notebook
 ---
+#GridBot
+##Lindsey Sample and Josh DeLeew, 2019
 
 Grid world:
 A matrix of rows and colums, each square has a light value, can be occupied by an agent, and can have an obstacle
@@ -11,6 +13,10 @@ light: 0 = dark, 255= max light (or 0-1)
 light scaline function: 255*exp(-distance)
 falls off, if we multiply d by a number less than one, drops off slower
 more than 1, drops off faster
+
+Here, we make our light grid and obstacle grid.
+If 1 is entered, it will make a static environment. If 2, dynamic
+Dynamic picks a row and column number that = 100 total squares and places 5 random obstacles
 
 ```{r}
 makeLightGrid<- function(numRows, numCols){
@@ -62,7 +68,6 @@ makeGrids<- function(x){
   }
     
     obsGrid[numRows-1, round(numCols/2)]<- 0
-    makeLightGrid(numRows, numCols)
     return(list(obsGrid, lightGrid))
 }
 #gets random numbers that make a 100 square grid
@@ -75,13 +80,7 @@ dynamicNums<-function(){
   nCols <- pairNums[[2]]
   return (c(nRows, nCols))
 }
-
-test<-makeObsGrid(1)
-test<-makeGrids(2)
-
-
 ```
-
 
 Agent traverses block matrix
 blank indicates no block
@@ -89,20 +88,14 @@ blank indicates no block
 0 = agent is in this spot
 agent cannot be on a block
 
-Agent's variables:
-cardinal: up, left, down or right pointing
-light accumulator
-NN
-Age
-
 
 functions:
 (determined by NN)
 turn in place to left, turn to right, step forward, step backward
 
 move:
-takes grid as argument
-changes grid so agent is in new spot
+takes state as argument
+changes grid or cardinal so agent is in new spot
 return new grid
 
 moveForward: moves in the direction bot is facing one space forward
@@ -186,41 +179,13 @@ turnCounter <- function(state){
 
 ```
 
-Test
-```{r}
-obsGridTest<- makeObsGrid(numRows, numCols)
-lightGridTest<- makeLightGrid(numRows, numCols)
-#begin facing up
-cardinal <- c(-1,0)
-acc<- 0
-age<- 0
-
-state <- list(
-  cardinal = c(-1,0),
-  obsGrid = makeObsGrid(numRows, numCols),
-  lightGrid = makeLightGrid(numRows, numCols)
-)
-
-obsGridTest <- moveForward(state)
-obsGridTest <- moveForward(state)
-state<- turnClock(state)
-obsGridTest <- moveForward(state)
-state[2]
-
-```
-
-overall: "take turn"
-loop gets current status, runs NN to see action, takes action, gets new state
-
-(rows, col)
-(1,0) -> down
-(0, 1) -> right
-(-1,0) -> up
-(0, -1) -> left
-
 #light function
 get light takes in obsGrid, finds the position of the bot (aCur)
 based on the cardinal, it takes the average of the space its in, the space in front, and the two to the right and left for the right and left sensors respectively. The sum of r and l is the number added to the accumulator
+
+! [LDR] (LDR.jpg)
+
+
 ```{r}
 down <- c(1,0)
 right<- c(0, 1)
@@ -288,34 +253,9 @@ leftLight<- mean(lightGrid[aCur], lightGrid[aCur+cardinal], lightGrid[aCur+down]
 
 
 ```
-Test for light
-```{r}
-state <- list(
-  cardinal = c(-1,0),
-  obsGrid = makeObsGrid(numRows, numCols),
-  lightGrid = makeLightGrid(numRows, numCols)
-)
 
-#begin facing up
-
-stateTest <- moveForward(state)
-LLight<- getLeftLight(stateTest)
-obsGridTest <- moveForward(stateTest)
-RLight<- getRightLight(stateTest)
-stateTest<- turnClock(stateTest)
-LLight<- getLeftLight(stateTest)
-stateTest <- moveForward(stateTest)
-
-
-```
-Get ir
+###IRs
 returns the distance of the closest block
-
-
-down <- c(1,0)
-right<- c(0, 1)
-up<- c(-1,0)
-left<- c(0, -1)
 
 ```{r}
 leftIR<- 0
@@ -471,11 +411,10 @@ getLeftIR<- function(state){
  
   return(abs(leftIR))
 }
-
-  
   
 ```
-getBump
+###Bumper
+returns 1 if there is an object in front of the bot (depends on where it is facing)
 ```{r}
 bump <- 0
 getBump<- function(state){
@@ -497,13 +436,8 @@ getBump<- function(state){
 ```
 
 
-NN
+###Update sensors
 ```{r}
-clock <- 0
-counter <- 0
-fwd <- 0
-back <- 0
-
 updateInput<- function(state){
     leftIR<- getLeftIR(state)
     rightIR<- getRightIR(state)
@@ -517,7 +451,7 @@ updateInput<- function(state){
 
 ```
 
-Trial
+###MakeMove
 ```{r}
 makeMove<- function(weights, state){
   cardinal <- state[[1]]
@@ -544,8 +478,6 @@ makeMove<- function(weights, state){
  # e-temp * val / 
     #divide all by sum of all
   
-  
-  
   action <- sample(c(moveForward,moveBackward, turnClock, turnCounter),1,  prob=adj.output)
   new.state <- action[[1]](state)
   
@@ -554,7 +486,7 @@ makeMove<- function(weights, state){
   return(new.state)
 }
 ```
-Making weights and setting up
+###Making weights and setting up
 ```{r}
 makeRandWeights <- function(){
   output<- c(moveForward, moveBackward, turnClock, turnCounter)
