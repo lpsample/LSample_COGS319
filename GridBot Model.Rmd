@@ -558,7 +558,7 @@ runBot <- function(weights, x){
 runGeneration <- function(genomes, x) {
   fitness.vals <- data.frame(bot.number=1:10, fitness=rep(0,10))
   for(i in 1:N.bots){
-    print(genomes[[i]])
+    #print(genomes[[i]])
     fitness <- runBot(genomes[[i]], x)
     fitness.vals[i, 'fitness'] <- fitness
   }
@@ -567,9 +567,9 @@ runGeneration <- function(genomes, x) {
 }
 
 
-createGeneration <- function(){
+createGeneration <- function(N.bots){
   genomes <- list()
-  for(i in 1:N.gen){
+  for(i in 1:N.bots){
     #setUp(10,10)
     genomes[[i]] <- makeRandWeights()    
   }
@@ -589,25 +589,27 @@ createGeneration <- function(){
 
 #takes in what runGeneration returns
 next.genomes<- function(old.gen, old.genomes){
-next.generation <- sample(old.gen$bot.number, 10, replace=T, prob = generation.results$fitness)
-#next.generation <- c(1,1,1,1,4,5,6,3,3,4)
-next.bots.genomes <- old.genomes[next.generation]
-return(next.bots.genomes)
+  next.generation <- sample(old.gen$bot.number, 10, replace=T, prob = old.gen$fitness)
+  #next.generation <- c(1,1,1,1,4,5,6,3,3,4)
+  next.bots.genomes <- old.genomes[next.generation]
+  return(next.bots.genomes)
 }
 
-r<-nrow(weights)
+#r<-nrow(weights)
   
- r<- as.numeric(sample(r, 1))
+# r<- as.numeric(sample(r, 1))
 
 
-     #w<-  mutate(makeRandWeights())
-#w[1, 1] <- sample(weight.options, 1)
+  w<-makeRandWeights()
+  weight.options<- c(-1, -.5, 0, .5, 1)
+  w[1, 1] <- as.numeric(sample(weight.options, 1))
 
 mutate <- function(weights){
   new.weights <- weights
   weight.options<- c(-1, -.5, 0, .5, 1)
   #i<- sample(length(weights), 1)
   #dim(weights)
+  
   r<-as.numeric(nrow(weights))
   c<-as.numeric(ncol(weights))
   
@@ -640,26 +642,22 @@ N.bots <- 10
 N.gen <- 100
 
 run<- function(x){
-  genomes<- createGeneration()
+  genomes<- createGeneration(N.bots)
   gen.fitness<- runGeneration(genomes, x)
   
-  for (i in N.gen) {
-    #print(i)
-  
+  for (a in 2:N.gen) {
     genomes<- next.genomes(gen.fitness,genomes)
     
-  for (i in length(genomes)) {
-    genomes[i]<- mutate(genomes[[i]])
+    for (i in 1:length(genomes)) {
+      genomes[i]<- mutate(genomes[[i]])
+    }
+    gen<- runGeneration(genomes, x)
   }
-  
-  gen<- runGeneration(genomes, x)
-  }
-   #print(i)
- 
 return(gen)
 }
 
 run<- run(1)
+
 ```
 
 
