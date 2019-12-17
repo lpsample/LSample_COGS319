@@ -584,8 +584,7 @@ createGeneration <- function(N.bots){
 #   test1.state <- makeMove(weights,test1.state)
 # }
 
-bots <- createGeneration(10)
-old.gen <- runGeneration(bots, 1)
+
 
 
 
@@ -598,6 +597,7 @@ next.genomes<- function(old.gen, old.genomes){
   next.bots.genomes<- old.genomes
   
   for (i in 1:length(next.generation)) {
+    #print(i)
     bot<- next.generation[[i]]
     next.bots.genomes[i] <- old.genomes[bot]
   }
@@ -630,11 +630,11 @@ mutate <- function(weights){
   r.m<- as.numeric(sample(r, 1))
   c.m<- as.numeric(sample(c, 1))
 
-  print(new.weights)
-  print(new.weights[r.m, c.m])
+  #print(new.weights)
+  #print(new.weights[r.m, c.m])
   new.weights[r.m, c.m] <- as.numeric(sample(weight.options, 1))
   
-  print(new.weights)
+  #print(new.weights)
   return(new.weights)
 }
 
@@ -659,24 +659,42 @@ N.moves <-100
 N.bots <- 10
 N.gen <- 100
 
+
+bots <- createGeneration(10)
+genomes<- makeRandWeights()
+old.gen <- runGeneration(bots, 1)
+b<-next.genomes(old.gen, genomes)
+mutate(b)
+
 run<- function(x){
+  x<-1
   genomes<- createGeneration(N.bots)
-  gen.fitness<- runGeneration(genomes, x)
+  gen<- runGeneration(genomes, x)
   
   for (a in 2:N.gen) {
     print(a)
-    genomes<- next.genomes(gen.fitness,genomes)
-    print(a)
-    
-    for (i in 1:length(genomes)) {
-      genomes[i]<- mutate(genomes[[i]])
+
+    genomes<- next.genomes(gen, genomes)
+     for (i in 1:length(genomes)) {
+       #print(genomes[i])
+       #i<-1
+      genomes[[i]]<- mutate(genomes[[i]])
+      #print(genomes[i])
     }
-    gen<- runGeneration(genomes, x)
+    gen <- runGeneration(genomes, x)
   }
-return(gen)
+  next.generation <- sample(old.gen$bot.number, 10, replace=T, prob = old.gen$fitness)
+ 
+  top.scorer <- as.numeric(which.max(gen$fitness))
+  final.weights<-genomes[[top.scorer]]
+  return(final.weights)
 }
 
-run<- run(1)
+
+
+static.run<- run(1)
+dynamic.run<- run(2)
+
 
 ```
 
