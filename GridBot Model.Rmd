@@ -488,6 +488,7 @@ makeMove<- function(weights, state){
   return(new.state)
 }
 
+
 ```
 ###Making weights and setting up
 ```{r}
@@ -549,6 +550,7 @@ runBot <- function(weights, x){
     state <- makeMove(weights, state)
     total.light <- total.light + getLeftLight(state) + getRightLight(state)
   }
+  listy(total)
   
   return(total.light)
 }
@@ -667,13 +669,12 @@ b<-next.genomes(old.gen, genomes)
 mutate(b)
 
 run<- function(x){
-  x<-1
+  #x<-1
   genomes<- createGeneration(N.bots)
   gen<- runGeneration(genomes, x)
   
   for (a in 2:N.gen) {
-    print(a)
-
+  #  print(a)
     genomes<- next.genomes(gen, genomes)
      for (i in 1:length(genomes)) {
        #print(genomes[i])
@@ -682,12 +683,12 @@ run<- function(x){
       #print(genomes[i])
     }
     gen <- runGeneration(genomes, x)
-  }
-  next.generation <- sample(old.gen$bot.number, 10, replace=T, prob = old.gen$fitness)
  
   top.scorer <- as.numeric(which.max(gen$fitness))
   final.weights<-genomes[[top.scorer]]
-  return(final.weights)
+  listy<- list(final.weights, max(gen$fitness))
+  return(listy)
+  }
 }
 
 
