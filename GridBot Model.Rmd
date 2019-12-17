@@ -588,28 +588,41 @@ next.bots.genomes <- bots[next.generation]
 return(next.bots.genomes)
 }
 
+r<-nrow(weights)
+  
+ r<- as.numeric(sample(r, 1))
+
+
+     #w<-  mutate(makeRandWeights())
+#w[1, 1] <- sample(weight.options, 1)
+
 mutate <- function(weights){
   new.weights <- weights
   weight.options<- c(-1, -.5, 0, .5, 1)
-  i<- sample(length(weights), 1)
-  dim(weights)
-  r<- sample(nrow(weights), 1)
-  c<- sample(ncol(weights), 1)
-  new.weights[r][c] <- sample(weight.options, 1)
+  #i<- sample(length(weights), 1)
+  #dim(weights)
+  r<-as.numeric(nrow(weights))
+  c<-as.numeric(ncol(weights))
+  
+  r.m<- as.numeric(sample(r, 1))
+  c.m<- as.numeric(sample(c, 1))
+  
+  
+  new.weights[r.m, c.m] <- as.numeric(sample(weight.options, 1))
   return(new.weights)
   }
   
   #new.weights <- rnorm(length(weights), mean=weights, sd=0.05)
   #10% mutation, change weights
-}
+
 #skip that do a loop change one
 
 #for loop, 1 to total gens, does all steps
 
 #mutates genomes
-for (i in 1:length(next.bots)){
-   next.bots[[i]] <- mutate(next.bots[[i]])
-}
+# for (i in 1:length(next.bots)){
+#    next.bots[[i]] <- mutate(next.bots[[i]])
+# }
 
 
 ```
@@ -619,22 +632,19 @@ N.bots <- 10
 N.gen <- 100
 
 run<- function(x){
-  genome.0<- createGeneration()
+  genome<- createGeneration()
+  gen<- runGeneration(genome, x)
   
-  gen.0<- runGeneration(genome.0, x)
-  genome.1<- next.gen(gen.0)
-  genome.1.m <- mutate(genome.1)
-  gen.1<- runGeneration(genome.1.m, x)
- 
-   for (i in N.gen-1) {
-    
+  for (i in N.gen-1) {
+  genome<- next.gen(gen)
+  genome <- mutate(genome)
+  gen<- runGeneration(genome, x)
   }
-  
-return(gen.1)
+ 
+return(gen)
 }
 
-
-static<- run(1)
+run<- run(1)
 ```
 
 
