@@ -44,7 +44,7 @@ makeGrids<- function(x){
   numCols <- d[2]
   }
   
-  makeLightGrid(numRows, numCols)
+  lightGrid<- makeLightGrid(numRows, numCols)
   obsGrid<- matrix(NA, numRows, numCols)
   obsGrid[1,]<- 1
   obsGrid[,1]<- 1
@@ -52,23 +52,27 @@ makeGrids<- function(x){
   obsGrid[,numCols] <-1
   
   
-  if( x==1)
+  if( x==1){
     obsGrid[round(numRows/2), round(numCols/2)]<- 1
     obsGrid[round(numRows/2)+1, round(numCols/2)]<- 1
     obsGrid[round(numRows/2), round(numCols/2)+1]<- 1
     obsGrid[round(numRows/2)-1, round(numCols/2)]<- 1
     obsGrid[round(numRows/2), round(numCols/2)-1]<- 1
 
+  } 
   if (x==2){
     #placing 5 obstacles randomly
-    for(i in 1:6)
+    for(i in 1:6){
     r<- sample(numRows-1, 1)
     c<- sample(numCols-1, 1)
     obsGrid[r, c]<- 1
+    }
   }
+    
     
     obsGrid[numRows-1, round(numCols/2)]<- 0
     return(list(obsGrid, lightGrid))
+  
 }
 #gets random numbers that make a 100 square grid
 dynamicNums<-function(){
@@ -80,6 +84,7 @@ dynamicNums<-function(){
   nCols <- pairNums[[2]]
   return (c(nRows, nCols))
 }
+
 ```
 
 Agent traverses block matrix
@@ -472,11 +477,6 @@ makeMove<- function(weights, state){
   }
   sum.output<- sum(output)
   adj.output <- output/sum.output
-  #adj.output <- apply(output,1,function(x) x/sum.output)
-  
-  #softmax pull from lab
- # e-temp * val / 
-    #divide all by sum of all
   
   action <- sample(c(moveForward,moveBackward, turnClock, turnCounter),1,  prob=adj.output)
   new.state <- action[[1]](state)
@@ -485,6 +485,7 @@ makeMove<- function(weights, state){
 
   return(new.state)
 }
+
 ```
 ###Making weights and setting up
 ```{r}
@@ -515,7 +516,7 @@ setUp<- function(x){
 
 t<-setUp(2)
 
-test1.state <- setUp(10, 10)
+test1.state <- setUp(2)
 weights <- makeRandWeights()
 for(i in 1:100){
   test1.state <- makeMove(weights,test1.state)
@@ -531,15 +532,17 @@ for(i in 1:100){
 upate sensor vals
 
 ```{r}
-N.bot <- 100
+N.moves <-100
+N.bots <- 10
 N.gen <- 100
 
-runBot <- function(weights){
+#runs bots with 100 moves
+runBot <- function(weights, x){
 
   # make a starting environment / state
-  state <- setUp(10, 10)
+  state <- setUp(x)
   total.light <- 0
-  for(i in 1:100){
+  for(i in 1:N.moves){
     state <- makeMove(weights, state)
     total.light <- total.light + getLeftLight(state) + getRightLight(state)
   }
@@ -547,22 +550,22 @@ runBot <- function(weights){
   return(total.light)
 }
 
-runBot(makeRandWeights())
+runBot(makeRandWeights(), 2)
   
-runGeneration <- function(genomes) {
+runGeneration <- function(genomes, x) {
   fitness.vals <- data.frame(bot.number=1:10, fitness=rep(0,10))
-  for(i in 1:100){
-    fitness <- runBot(genomes[[i]])
+  for(i in 1:N.bots){
+    fitness <- runBot(genomes[[i]], x)
     fitness.vals[i, 'fitness'] <- fitness
   }
   return(fitness.vals)
   # runBot for each genome in the data frame
 }
 
-createStaticGeneration <- function(n){
-  
+
+createGeneration <- function(){
   genomes <- list()
-  for(i in 1:n){
+  for(i in 1:N.gen){
     #setUp(10,10)
     genomes[[i]] <- makeRandWeights()    
   }
@@ -575,20 +578,31 @@ createStaticGeneration <- function(n){
 #   test1.state <- makeMove(weights,test1.state)
 # }
 
-bots <- createStaticGeneration(10)
-generation.results <- runGeneration(bots)
+bots <- createGeneration()
+generation.results <- runGeneration(bots, 2)
 
-next.generation <- sample(generation.results$bot.number, 10, replace=T, prob = generation.results$fitness)
-next.generation <- c(1,1,1,1,4,5,6,3,3,4)
-
-next.bots <- bots[next.generation]
+next.gen<- function(old.gen){
+next.generation <- sample(old.gen$bot.number, 10, replace=T, prob = generation.results$fitness)
+#next.generation <- c(1,1,1,1,4,5,6,3,3,4)
+next.bots.genomes <- bots[next.generation]
+return(next.bots.genomes)
+}
 
 mutate <- function(weights){
   new.weights <- weights
-  length(new.weights)
-  new.weights <- rnorm(length(weights), mean=weights, sd=0.05)
+  weight.options<- c(-1, -.5, 0, .5, 1)
+  i<- sample(length(weights), 1)
+  dim(weights)
+  r<- sample(nrow(weights), 1)
+  c<- sample(ncol(weights), 1)
+  new.weights[r][c] <- sample(weight.options, 1)
+  return(new.weights)
+  }
+  
+  #new.weights <- rnorm(length(weights), mean=weights, sd=0.05)
   #10% mutation, change weights
 }
+#skip that do a loop change one
 
 #for loop, 1 to total gens, does all steps
 
@@ -599,6 +613,34 @@ for (i in 1:length(next.bots)){
 
 
 ```
+```{r}
+N.moves <-100
+N.bots <- 10
+N.gen <- 100
+
+run<- function(x){
+  genome.0<- createGeneration()
+  
+  gen.0<- runGeneration(genome.0, x)
+  genome.1<- next.gen(gen.0)
+  genome.1.m <- mutate(genome.1)
+  gen.1<- runGeneration(genome.1.m, x)
+ 
+   for (i in N.gen-1) {
+    
+  }
+  
+return(gen.1)
+}
+
+
+static<- run(1)
+```
+
+
+
+
+
 Next steps:
   run agent through grid world
   agent that makes random decisions
