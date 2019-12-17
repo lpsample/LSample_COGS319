@@ -579,12 +579,15 @@ createGeneration <- function(){
 # }
 
 bots <- createGeneration()
-generation.results <- runGeneration(bots, 2)
+old.gen <- runGeneration(bots, 1)
 
-next.gen<- function(old.gen){
+
+
+#takes in what runGeneration returns
+next.genomes<- function(old.gen, old.genomes){
 next.generation <- sample(old.gen$bot.number, 10, replace=T, prob = generation.results$fitness)
 #next.generation <- c(1,1,1,1,4,5,6,3,3,4)
-next.bots.genomes <- bots[next.generation]
+next.bots.genomes <- old.genomes[next.generation]
 return(next.bots.genomes)
 }
 
@@ -632,13 +635,17 @@ N.bots <- 10
 N.gen <- 100
 
 run<- function(x){
-  genome<- createGeneration()
-  gen<- runGeneration(genome, x)
+  genomes<- createGeneration()
+  gen.fitness<- runGeneration(genomes, x)
   
   for (i in N.gen-1) {
-  genome<- next.gen(gen)
-  genome <- mutate(genome)
-  gen<- runGeneration(genome, x)
+  genomes<- next.genomes(gen.fitness,genomes)
+  
+  for (i in length(genomes)) {
+    genomes[i]<- mutate(genomes[[i]])
+  }
+  
+  gen<- runGeneration(genomes, x)
   }
  
 return(gen)
