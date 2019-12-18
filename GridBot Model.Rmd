@@ -10,7 +10,7 @@ A matrix of rows and colums, each square has a light value, can be occupied by a
 2 layers of matrix: light and obstacle + agent
 light: 0 = dark, 255= max light (or 0-1)
 
-light scaline function: 255*exp(-distance)
+light scaline function: 255*exp(-distance*.5)
 falls off, if we multiply d by a number less than one, drops off slower
 more than 1, drops off faster
 
@@ -550,7 +550,6 @@ runBot <- function(weights, x){
     state <- makeMove(weights, state)
     total.light <- total.light + getLeftLight(state) + getRightLight(state)
   }
-  listy(total)
   
   return(total.light)
 }
@@ -674,7 +673,7 @@ run<- function(x){
   gen<- runGeneration(genomes, x)
   
   for (a in 2:N.gen) {
-  #  print(a)
+   print(a)
     genomes<- next.genomes(gen, genomes)
      for (i in 1:length(genomes)) {
        #print(genomes[i])
@@ -684,11 +683,11 @@ run<- function(x){
     }
     gen <- runGeneration(genomes, x)
  
+  
+  }
   top.scorer <- as.numeric(which.max(gen$fitness))
   final.weights<-genomes[[top.scorer]]
-  listy<- list(final.weights, max(gen$fitness))
-  return(listy)
-  }
+  return(final.weights)
 }
 
 
@@ -699,7 +698,79 @@ dynamic.run<- run(2)
 
 ```
 
+```{r}
+install.packages("nnet")
+install.packages("neuralnet")
+install.packages("NeuralNetTools")
 
+library(nnet)
+library(neuralnet)
+library(NeuralNetTools)
+
+
+
+
+
+
+#static <- nnet(x=input, y=output, weights=static.run, size=0, Wts, mask,
+#linout = FALSE, entropy = FALSE, softmax = FALSE,
+#censored = FALSE, skip = FALSE, rang = 0.7, decay = 0,
+#maxit = 100, Hess = FALSE, trace = TRUE, MaxNWts = 1000,
+#abstol = 1.0e-4, reltol = 1.0e-8, ...)
+
+#nnet(formula= (1 / (1 + exp(-sum(input*weights)))), data= input, weights= static.run,
+#subset=output, na.action, contrasts = NULL)
+
+
+#import the function from Github
+library(devtools)
+source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+source_url('https://gist.github.com/fawda123/6206737/raw/2e1bc9cbc48d1a56d2a79dd1d33f414213f5f1b1/gar_fun.r')
+ source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+devtools::install_github('fawda123/NeuralNetTools', ref = 'development')
+install_github('fawda123/NeuralNetTools')
+
+plot.nnet(static.run,struct=5,4)
+
+
+wts_in <- as.vector(static.run)
+
+plot.nnet(wts_in, struct=struct)
+
+
+struct <- c(5,4) #two inputs, two hidden, one output 
+
+neuralweights(wts_in, rel_rsc=1, struct= struct)
+
+input<- c(leftLight,leftIR, bump, rightIR, rightLight) 
+output<- c(moveForward, moveBackward, turnClock, turnCounter)
+
+plotnet(static.run, input, output, struct = struct,
+  nid = TRUE, all_out = TRUE, all_in = TRUE, bias = TRUE,
+  rel_rsc = c(1, 7), circle_cex = 5, node_labs = TRUE, var_labs = TRUE,
+  line_stag = NULL, cex_val = 1, alpha_val = 1,
+  circle_col = "lightblue", pos_col = "black", neg_col = "grey",
+  bord_col = "lightblue", max_sp = FALSE, pad_x = 1, prune_col = NULL,
+  prune_lty = "dashed", size=0)
+
+
+devtools::source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+
+mod.in<-c(13.12,1.49,0.16,-0.11,-0.19,-0.16,0.56,-0.52,0.81) 
+struct<-c(2,2,1) 
+plot.nnet(mod.in,struct=struct)
+(reshape_0.8.5, scales_0.3.0)
+
+wts_in <- as.vector(static.run)
+struct<-c(5,0,4) 
+plot.nnet(mod.in,struct=struct, bias=F)
+
+
+
+```
+
+Citation:
+Beck MW. 2015. NeuralNetTools: Visualization and Analysis Tools for Neural Networks. Version 1.3.7. http://cran.r-project.org/web/packages/NeuralNetTools/
 
 
 
