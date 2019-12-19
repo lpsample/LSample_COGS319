@@ -685,6 +685,8 @@ run<- function(x){
  
   
   }
+  
+  
   top.scorer <- as.numeric(which.max(gen$fitness))
   final.weights<-genomes[[top.scorer]]
   return(final.weights)
